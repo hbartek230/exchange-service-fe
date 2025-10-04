@@ -157,6 +157,66 @@ export function useCurrencyData() {
     }
   ])
 
+  const marketStats = ref({
+    marketCapPLN: null,
+    volume24hPLN: null,
+    btcDominance: null,
+    updatedAt: null
+  })
+
+  const formatLargePLN = (value) => {
+    if (value === null || value === undefined) return '—'
+    const abs = Math.abs(value)
+    const sign = value < 0 ? '-' : ''
+    const units = [
+      { limit: 1e12, suffix: 'bln' },
+      { limit: 1e9, suffix: 'mld' },
+      { limit: 1e6, suffix: 'mln' },
+      { limit: 1e3, suffix: 'tys.' }
+    ]
+
+    for (const u of units) {
+      if (abs >= u.limit) {
+        return `${sign}${(abs / u.limit).toFixed(1)} ${u.suffix} zł`
+      }
+    }
+
+    return `${sign}${formatCurrency(value, 2)} zł`
+  }
+
+  const fetchMarketStats = async () => {
+    try {
+      const res = await fetch('https://api.coingecko.com/api/v3/global')
+      if (!res.ok) throw new Error('Failed to fetch market stats')
+      const json = await res.json()
+
+      const marketCapUSD = json?.data?.total_market_cap?.usd ?? null
+      const volumeUSD = json?.data?.total_volume?.usd ?? null
+      const btcDominance = json?.data?.market_cap_percentage?.btc ?? null
+
+      const usdEntry = currencies.value.find(c => c.code === 'USD')
+      const usdRate = usdEntry ? usdEntry.rate : null
+
+      if (marketCapUSD != null && usdRate != null) {
+        marketStats.value.marketCapPLN = marketCapUSD * usdRate
+      } else {
+        marketStats.value.marketCapPLN = null
+      }
+
+      if (volumeUSD != null && usdRate != null) {
+        marketStats.value.volume24hPLN = volumeUSD * usdRate
+      } else {
+        marketStats.value.volume24hPLN = null
+      }
+
+      marketStats.value.btcDominance = typeof btcDominance === 'number' ? btcDominance : null
+      marketStats.value.updatedAt = new Date().toISOString()
+    } catch (err) {
+      console.error('fetchMarketStats error:', err)
+    }
+  }
+
+
   const formatCurrency = (value, decimals = 2) => {
     return new Intl.NumberFormat('pl-PL', {
       minimumFractionDigits: decimals,
@@ -173,6 +233,10 @@ export function useCurrencyData() {
     currencies,
     cryptocurrencies,
     formatCurrency,
-    convertCurrency
+    convertCurrency,
+    // market stats & helpers
+    marketStats,
+    fetchMarketStats,
+    formatLargePLN
   }
 }

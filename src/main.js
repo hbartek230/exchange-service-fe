@@ -5,9 +5,9 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 
 import App from './App.vue'
-import HomePage from './view/HomePage.vue'
-import ExchangePage from './view/ExchangePage.vue'
-import CryptoPage from './view/CryptoPage.vue'
+import HomePage from './views/HomePage.vue'
+import ExchangePage from './views/ExchangePage.vue'
+import CryptoPage from './views/CryptoPage.vue'
 
 const vuetify = createVuetify({
   theme: {

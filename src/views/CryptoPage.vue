@@ -69,8 +69,8 @@
               <v-icon size="32" class="mr-3">mdi-chart-line</v-icon>
               <span class="text-h6 font-weight-medium">Kapitalizacja rynku</span>
             </div>
-            <p class="text-h4 font-weight-bold primary--text">8.2 bln zł</p>
-            <p class="text-body-2 text-grey-darken-1">Łączna wartość rynku</p>
+            <p class="text-h4 font-weight-bold primary--text">{{ formatLargePLN(marketStats.marketCapPLN) }}</p>
+            <p class="text-body-2 text-grey-darken-1">Łączna wartość rynku (est.)</p>
           </v-card-text>
         </v-card>
       </v-col>
@@ -82,8 +82,8 @@
               <v-icon size="32" class="mr-3">mdi-wallet</v-icon>
               <span class="text-h6 font-weight-medium">Wolumen 24h</span>
             </div>
-            <p class="text-h4 font-weight-bold success--text">412 mld zł</p>
-            <p class="text-body-2 text-grey-darken-1">Obrót dzienny</p>
+            <p class="text-h4 font-weight-bold success--text">{{ formatLargePLN(marketStats.volume24hPLN) }}</p>
+            <p class="text-body-2 text-grey-darken-1">Obrót 24h (est.)</p>
           </v-card-text>
         </v-card>
       </v-col>
@@ -95,8 +95,8 @@
               <v-icon size="32" class="mr-3">mdi-bitcoin</v-icon>
               <span class="text-h6 font-weight-medium">Dominacja BTC</span>
             </div>
-            <p class="text-h4 font-weight-bold secondary--text">58.4%</p>
-            <p class="text-body-2 text-grey-darken-1">Udział Bitcoina</p>
+            <p class="text-h4 font-weight-bold secondary--text">{{ marketStats.btcDominance ? marketStats.btcDominance.toFixed(1) + '%' : '—' }}</p>
+            <p class="text-body-2 text-grey-darken-1">Udział Bitcoina (market cap)</p>
           </v-card-text>
         </v-card>
       </v-col>
@@ -118,9 +118,15 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
-const { cryptocurrencies, formatCurrency } = useCurrencyData()
+const { cryptocurrencies, formatCurrency, marketStats, fetchMarketStats, formatLargePLN } = useCurrencyData()
+
+onMounted(() => {
+  fetchMarketStats()
+  setInterval(fetchMarketStats, 5 * 60 * 1000)
+})
 </script>
 
 <style scoped>

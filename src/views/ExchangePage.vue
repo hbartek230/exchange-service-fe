@@ -33,7 +33,7 @@
                 variant="outlined"
                 density="comfortable"
                 hide-details
-                suffix="PLN"
+                :suffix="fromCurrency"
                 class="text-right"
               ></v-text-field>
             </v-col>
@@ -78,6 +78,7 @@
                 density="comfortable"
                 hide-details
                 readonly
+                :suffix="toCurrency"
                 class="text-right"
               ></v-text-field>
             </v-col>
@@ -128,10 +129,13 @@ const currencyOptions = computed(() => {
   return allCurr
 })
 
-const allCurrencies = computed(() => [
-  ...currencies.value,
-  ...cryptocurrencies.value
-])
+const allCurrenciesMap = computed(() => {
+  const map = { 'PLN': { rate: 1 } }
+  ;[...currencies.value, ...cryptocurrencies.value].forEach(c => {
+    map[c.code] = c
+  })
+  return map
+})
 
 const fromCurrency = ref('PLN')
 const toCurrency = ref('USD')
@@ -139,15 +143,14 @@ const fromAmount = ref(100)
 const toAmount = ref(0)
 
 const getRate = (code) => {
-  if (code === 'PLN') return 1
-  const currency = allCurrencies.value.find(c => c.code === code)
-  return currency ? currency.rate : 1
+  const entry = allCurrenciesMap.value[code]
+  return entry ? entry.rate : 1
 }
 
 const exchangeRate = computed(() => {
   const fromRate = getRate(fromCurrency.value)
   const toRate = getRate(toCurrency.value)
-  return toRate / fromRate
+  return toRate ? fromRate / toRate : 0
 })
 
 const calculate = () => {
@@ -157,13 +160,8 @@ const calculate = () => {
 }
 
 const swapCurrencies = () => {
-  const temp = fromCurrency.value
-  fromCurrency.value = toCurrency.value
-  toCurrency.value = temp
-  
-  const tempAmount = fromAmount.value
+  [fromCurrency.value, toCurrency.value] = [toCurrency.value, fromCurrency.value]
   fromAmount.value = toAmount.value
-  fromAmount.value = tempAmount
 }
 
 watch([fromCurrency, toCurrency, fromAmount], calculate, { immediate: true })

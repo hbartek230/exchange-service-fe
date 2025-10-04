@@ -1,3 +1,13 @@
+<script setup>
+import { RouterLink } from 'vue-router'
+
+const navItems = [
+  { name: 'home', icon: 'mdi-home', text: 'Strona główna' },
+  { name: 'exchange', icon: 'mdi-swap-horizontal', text: 'Wymień waluty' },
+  { name: 'crypto', icon: 'mdi-bitcoin', text: 'Krypto' }
+]
+</script>
+
 <template>
   <v-app>
     <v-app-bar color="primary" elevation="2" prominent>
@@ -9,39 +19,21 @@
 
         <v-spacer></v-spacer>
 
-        <RouterLink :to="{ name: 'home' }" custom v-slot="{ navigate, href, isActive }">
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.name"
+          :to="{ name: item.name }"
+          custom
+          v-slot="{ navigate, href, isActive }"
+        >
           <v-btn
             :href="href"
             @click="navigate"
             :variant="isActive ? 'flat' : 'text'"
             :color="isActive ? 'white' : ''"
-            prepend-icon="mdi-home"
+            :prepend-icon="item.icon"
           >
-            Strona główna
-          </v-btn>
-        </RouterLink>
-
-        <RouterLink :to="{ name: 'exchange' }" custom v-slot="{ navigate, href, isActive }">
-          <v-btn
-            :href="href"
-            @click="navigate"
-            :variant="isActive ? 'flat' : 'text'"
-            :color="isActive ? 'white' : ''"
-            prepend-icon="mdi-swap-horizontal"
-          >
-            Wymień waluty
-          </v-btn>
-        </RouterLink>
-
-        <RouterLink :to="{ name: 'crypto' }" custom v-slot="{ navigate, href, isActive }">
-          <v-btn
-            :href="href"
-            @click="navigate"
-            :variant="isActive ? 'flat' : 'text'"
-            :color="isActive ? 'white' : ''"
-            prepend-icon="mdi-bitcoin"
-          >
-            Krypto
+            {{ item.text }}
           </v-btn>
         </RouterLink>
       </v-container>
@@ -66,7 +58,3 @@
     </v-footer>
   </v-app>
 </template>
-
-<script setup>
-import { RouterLink } from 'vue-router'
-</script>
