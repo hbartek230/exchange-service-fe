@@ -11,7 +11,6 @@ import App from './App.vue'
 //import ExchangePage from './views/ExchangePage.vue'
 //import CryptoPage from './views/CryptoPage.vue'
 
-// Konfiguracja Vuetify z Material Design 3
 const vuetify = createVuetify({
   components,
   directives,
@@ -34,7 +33,6 @@ const vuetify = createVuetify({
   },
 })
 
-// Konfiguracja routera
 const router = createRouter({
   history: createWebHistory(),
   routes: [
