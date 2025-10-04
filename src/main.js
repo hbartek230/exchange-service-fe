@@ -20,7 +20,7 @@ const vuetify = createVuetify({
           accent: '#FF5722',
           error: '#F44336',
           warning: '#FF9800',
-          info: '#2196F3',
+          info: '#03A9F4',
           success: '#4CAF50',
           background: '#F5F5F5',
         },
