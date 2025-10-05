@@ -5,23 +5,8 @@ export const exchangeService = {
   async getExchangeRates() {
     try {
       const response = await bffApiClient.get(EXCHANGE_ENDPOINTS.EXCHANGE_RATES)
-      const rawData = response.data || []
-      
-      // Przekształć dane z BFF do oczekiwanego formatu
-      // BFF zwraca tablicę z bid/ask, przekształcamy na currencies
-      const currencies = rawData.map(item => ({
-        code: item.code,
-        name: item.currency,
-        rate: parseFloat(item.ask), // Używamy kursu sprzedaży jako głównego kursu
-        change: 0, // BFF nie zwraca zmiany, ustawiamy 0
-        bid: parseFloat(item.bid),
-        ask: parseFloat(item.ask)
-      }))
-      
-      return {
-        currencies: currencies,
-        cryptocurrencies: [] // BFF na razie nie zwraca kryptowalut
-      }
+      // Zwracamy bezpośrednio dane z BFF - bez żadnych transformacji
+      return response.data || []
     } catch (error) {
       console.error('Error fetching exchange rates:', error)
       throw new Error(

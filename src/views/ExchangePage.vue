@@ -140,8 +140,7 @@ import { useCurrencyData } from '../composables/useCurrencyData'
 const { 
   currencies, 
   cryptocurrencies, 
-  formatCurrency, 
-  convertCurrency,
+  formatCurrency,
   loading,
   error,
   init,
@@ -150,29 +149,24 @@ const {
 } = useCurrencyData()
 const route = useRoute()
 
-// Przygotuj opcje dla select
+// Przygotuj opcje dla select używając rzeczywistej struktury BFF
 const currencyOptions = computed(() => {
   const allCurr = [
-    { code: 'PLN', label: '🇵🇱 PLN - Polski złoty', flag: '🇵🇱' },
+    { code: 'PLN', label: '🇵🇱 PLN - Polski złoty', flag: '🇵🇱', ask: 1, bid: 1 },
     ...currencies.value.map(c => ({
       code: c.code,
-      label: `${c.flag} ${c.code} - ${c.name}`,
+      label: `${c.flag} ${c.code} - ${c.currency}`,
       flag: c.flag,
-      rate: c.rate
-    })),
-    ...cryptocurrencies.value.map(c => ({
-      code: c.code,
-      label: `${c.symbol} ${c.code} - ${c.name}`,
-      flag: c.symbol,
-      rate: c.rate
+      ask: c.ask,
+      bid: c.bid
     }))
   ]
   return allCurr
 })
 
 const allCurrenciesMap = computed(() => {
-  const map = { 'PLN': { rate: 1 } }
-  ;[...currencies.value, ...cryptocurrencies.value].forEach(c => {
+  const map = { 'PLN': { ask: 1, bid: 1 } }
+  currencies.value.forEach(c => {
     map[c.code] = c
   })
   return map
@@ -201,21 +195,22 @@ onUnmounted(() => {
   stopAutoRefresh()
 })
 
-const getRate = (code) => {
+// Używamy kursu ask (sprzedaży) jako podstawowego kursu do obliczeń
+const getAskRate = (code) => {
   const entry = allCurrenciesMap.value[code]
-  return entry ? entry.rate : 1
+  return entry ? entry.ask : 1
 }
 
 const exchangeRate = computed(() => {
-  const fromRate = getRate(fromCurrency.value)
-  const toRate = getRate(toCurrency.value)
+  const fromRate = getAskRate(fromCurrency.value)
+  const toRate = getAskRate(toCurrency.value)
   return toRate ? fromRate / toRate : 0
 })
 
 const calculate = () => {
-  const fromRate = getRate(fromCurrency.value)
-  const toRate = getRate(toCurrency.value)
-  toAmount.value = convertCurrency(fromAmount.value, fromRate, toRate)
+  const fromRate = getAskRate(fromCurrency.value)
+  const toRate = getAskRate(toCurrency.value)
+  toAmount.value = (fromAmount.value * fromRate) / toRate
 }
 
 const swapCurrencies = () => {

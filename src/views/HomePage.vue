@@ -53,8 +53,8 @@
           <tr>
             <th class="text-left">Waluta</th>
             <th class="text-left">Kod</th>
-            <th class="text-right">Kurs (PLN)</th>
-            <th class="text-right">Zmiana 24h</th>
+            <th class="text-right">Kupno</th>
+            <th class="text-right">Sprzedaż</th>
           </tr>
         </thead>
         <tbody>
@@ -67,7 +67,7 @@
             <td>
               <div class="d-flex align-center">
                 <span class="text-h5 mr-3">{{ currency.flag }}</span>
-                <span class="font-weight-medium">{{ currency.name }}</span>
+                <span class="font-weight-medium">{{ currency.currency }}</span>
               </div>
             </td>
             <td>
@@ -77,22 +77,13 @@
             </td>
             <td class="text-right">
               <span class="text-h6 font-weight-bold">
-                {{ formatCurrency(currency.rate, 4) }} zł
+                {{ formatCurrency(currency.bid, 4) }} zł
               </span>
             </td>
             <td class="text-right">
-              <v-chip
-                :color="currency.change >= 0 ? 'success' : 'error'"
-                variant="tonal"
-                size="small"
-              >
-                <v-icon
-                  :icon="currency.change >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"
-                  size="small"
-                  class="mr-1"
-                ></v-icon>
-                {{ Math.abs(currency.change) }}%
-              </v-chip>
+              <span class="text-h6 font-weight-bold">
+                {{ formatCurrency(currency.ask, 4) }} zł
+              </span>
             </td>
           </tr>
         </tbody>

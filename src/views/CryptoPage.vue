@@ -167,34 +167,40 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
-const { 
-  cryptocurrencies, 
-  formatCurrency, 
+const {
+  currencies,
+  cryptocurrencies,
+  formatCurrency,
   marketStats, 
   fetchMarketStats, 
   formatLargePLN,
+  fetchExchangeRates,
   loading,
   error,
   init,
-  fetchExchangeRates,
+  hasData,
   startAutoRefresh,
-  stopAutoRefresh
+  stopAutoRefresh,
+  startMarketStatsAutoRefresh,
+  stopMarketStatsAutoRefresh
 } = useCurrencyData()
-
-let marketStatsInterval = null
 
 onMounted(async () => {
   await init()
   startAutoRefresh()
-  fetchMarketStats()
-  marketStatsInterval = setInterval(fetchMarketStats, 5 * 60 * 1000)
+  
+  // Initial fetch and start auto-refresh for market stats
+  try {
+    await fetchMarketStats()
+  } catch (error) {
+    console.error('Initial market stats fetch failed:', error)
+  }
+  startMarketStatsAutoRefresh()
 })
 
 onUnmounted(() => {
   stopAutoRefresh()
-  if (marketStatsInterval) {
-    clearInterval(marketStatsInterval)
-  }
+  stopMarketStatsAutoRefresh()
 })
 </script>
 

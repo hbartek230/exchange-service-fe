@@ -1,5 +1,34 @@
 import axios from 'axios'
 
+// Conditional logging - only in development
+const isDevelopment = import.meta.env.DEV
+const log = (...args) => isDevelopment && console.log(...args)
+const logError = (...args) => isDevelopment && console.error(...args)
+
+// Reusable interceptor helper functions
+const createRequestInterceptor = (apiName) => ({
+  onFulfilled: (config) => {
+    log(`[${apiName}] ${config.method?.toUpperCase()} ${config.url}`)
+    return config
+  },
+  onRejected: (error) => {
+    logError(`[${apiName}] Request error:`, error)
+    return Promise.reject(error)
+  }
+})
+
+const createResponseInterceptor = (apiName) => ({
+  onFulfilled: (response) => {
+    log(`[${apiName}] Response: ${response.status} ${response.statusText}`)
+    return response
+  },
+  onRejected: (error) => {
+    logError(`[${apiName}] Response error:`, error.response?.status, error.response?.statusText)
+    return Promise.reject(error)
+  }
+})
+
+// API clients configuration
 const bffApiClient = axios.create({
   baseURL: '/',
   timeout: 10000,
@@ -17,48 +46,31 @@ const externalApiClient = axios.create({
   }
 })
 
+// Apply interceptors using helper functions
+const bffRequestInterceptor = createRequestInterceptor('BFF API')
+const bffResponseInterceptor = createResponseInterceptor('BFF API')
+
 bffApiClient.interceptors.request.use(
-  (config) => {
-    console.log(`[BFF API] ${config.method?.toUpperCase()} ${config.url}`)
-    return config
-  },
-  (error) => {
-    console.error('[BFF API] Request error:', error)
-    return Promise.reject(error)
-  }
+  bffRequestInterceptor.onFulfilled,
+  bffRequestInterceptor.onRejected
 )
 
 bffApiClient.interceptors.response.use(
-  (response) => {
-    console.log(`[BFF API] Response: ${response.status} ${response.statusText}`)
-    return response
-  },
-  (error) => {
-    console.error('[BFF API] Response error:', error.response?.status, error.response?.statusText)
-    return Promise.reject(error)
-  }
+  bffResponseInterceptor.onFulfilled,
+  bffResponseInterceptor.onRejected
 )
 
+const externalRequestInterceptor = createRequestInterceptor('External API')
+const externalResponseInterceptor = createResponseInterceptor('External API')
+
 externalApiClient.interceptors.request.use(
-  (config) => {
-    console.log(`[External API] ${config.method?.toUpperCase()} ${config.url}`)
-    return config
-  },
-  (error) => {
-    console.error('[External API] Request error:', error)
-    return Promise.reject(error)
-  }
+  externalRequestInterceptor.onFulfilled,
+  externalRequestInterceptor.onRejected
 )
 
 externalApiClient.interceptors.response.use(
-  (response) => {
-    console.log(`[External API] Response: ${response.status} ${response.statusText}`)
-    return response
-  },
-  (error) => {
-    console.error('[External API] Response error:', error.response?.status, error.response?.statusText)
-    return Promise.reject(error)
-  }
+  externalResponseInterceptor.onFulfilled,
+  externalResponseInterceptor.onRejected
 )
 
 export { bffApiClient, externalApiClient }
