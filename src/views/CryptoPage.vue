@@ -168,7 +168,6 @@ import { onMounted, onUnmounted } from 'vue'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
 const {
-  currencies,
   cryptocurrencies,
   formatCurrency,
   marketStats, 
@@ -178,7 +177,6 @@ const {
   loading,
   error,
   init,
-  hasData,
   startAutoRefresh,
   stopAutoRefresh,
   startMarketStatsAutoRefresh,

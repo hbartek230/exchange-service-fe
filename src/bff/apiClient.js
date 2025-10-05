@@ -28,7 +28,21 @@ const createResponseInterceptor = (apiName) => ({
   }
 })
 
-// API clients configuration
+const addInterceptors = (client, apiName) => {
+  const requestInterceptor = createRequestInterceptor(apiName)
+  const responseInterceptor = createResponseInterceptor(apiName)
+
+  client.interceptors.request.use(
+    requestInterceptor.onFulfilled,
+    requestInterceptor.onRejected
+  )
+
+  client.interceptors.response.use(
+    responseInterceptor.onFulfilled,
+    responseInterceptor.onRejected
+  )
+}
+
 const bffApiClient = axios.create({
   baseURL: '/',
   timeout: 10000,
@@ -46,31 +60,7 @@ const externalApiClient = axios.create({
   }
 })
 
-// Apply interceptors using helper functions
-const bffRequestInterceptor = createRequestInterceptor('BFF API')
-const bffResponseInterceptor = createResponseInterceptor('BFF API')
-
-bffApiClient.interceptors.request.use(
-  bffRequestInterceptor.onFulfilled,
-  bffRequestInterceptor.onRejected
-)
-
-bffApiClient.interceptors.response.use(
-  bffResponseInterceptor.onFulfilled,
-  bffResponseInterceptor.onRejected
-)
-
-const externalRequestInterceptor = createRequestInterceptor('External API')
-const externalResponseInterceptor = createResponseInterceptor('External API')
-
-externalApiClient.interceptors.request.use(
-  externalRequestInterceptor.onFulfilled,
-  externalRequestInterceptor.onRejected
-)
-
-externalApiClient.interceptors.response.use(
-  externalResponseInterceptor.onFulfilled,
-  externalResponseInterceptor.onRejected
-)
+addInterceptors(bffApiClient, 'BFF API')
+addInterceptors(externalApiClient, 'External API')
 
 export { bffApiClient, externalApiClient }

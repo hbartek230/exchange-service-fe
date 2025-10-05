@@ -19,19 +19,6 @@ const currencyFlags = {
   'NOK': { flag: '🇳🇴', name: 'Korona norweska' }
 }
 
-const cryptocurrencyData = {
-  'BTC': { symbol: '₿', name: 'Bitcoin', icon: 'mdi-bitcoin' },
-  'ETH': { symbol: 'Ξ', name: 'Ethereum', icon: 'mdi-ethereum' },
-  'USDT': { symbol: '₮', name: 'Tether', icon: 'mdi-currency-usd' },
-  'BNB': { symbol: 'BNB', name: 'Binance Coin', icon: 'mdi-hexagon-multiple' },
-  'SOL': { symbol: 'SOL', name: 'Solana', icon: 'mdi-triangle' },
-  'XRP': { symbol: 'XRP', name: 'Ripple', icon: 'mdi-water' },
-  'ADA': { symbol: '₳', name: 'Cardano', icon: 'mdi-alpha-a-circle' },
-  'DOGE': { symbol: 'Ð', name: 'Dogecoin', icon: 'mdi-dog' },
-  'DOT': { symbol: 'DOT', name: 'Polkadot', icon: 'mdi-circle-multiple' },
-  'MATIC': { symbol: 'MATIC', name: 'Polygon', icon: 'mdi-hexagon' }
-}
-
 // Singleton state - shared across all component instances
 const currencies = ref([])
 const cryptocurrencies = ref([])
@@ -123,7 +110,7 @@ const fetchMarketStats = async () => {
 
       // Znajdź kurs USD, ale obsłuż przypadek gdy go nie ma
       const usdEntry = currencies.value.find(c => c.code === 'USD')
-      const usdRate = usdEntry ? usdEntry.rate : null
+      const usdRate = usdEntry ? usdEntry.ask : null
 
       // Aktualizuj tylko te wartości, które są dostępne
       if (marketCapUSD != null && usdRate != null && !isNaN(marketCapUSD) && !isNaN(usdRate)) {
@@ -135,10 +122,7 @@ const fetchMarketStats = async () => {
         if (usdRate == null) {
           console.warn('USD rate not available - cannot calculate PLN values')
         }
-        // Zachowaj poprzednią wartość jeśli była ustawiona
-        if (marketStats.value.marketCapPLN === null) {
-          marketStats.value.marketCapPLN = null
-        }
+        // Wartość zostanie zachowana (null z inicjalizacji lub poprzednia wartość)
       }
 
       if (volumeUSD != null && usdRate != null && !isNaN(volumeUSD) && !isNaN(usdRate)) {
@@ -147,20 +131,14 @@ const fetchMarketStats = async () => {
         if (volumeUSD == null) {
           console.warn('Volume 24h USD not available in API response')
         }
-        // Zachowaj poprzednią wartość jeśli była ustawiona
-        if (marketStats.value.volume24hPLN === null) {
-          marketStats.value.volume24hPLN = null
-        }
+        // Wartość zostanie zachowana (null z inicjalizacji lub poprzednia wartość)
       }
 
       if (typeof btcDominance === 'number' && !isNaN(btcDominance)) {
         marketStats.value.btcDominance = btcDominance
       } else {
         console.warn('BTC dominance not available or invalid in API response')
-        // Zachowaj poprzednią wartość jeśli była ustawiona
-        if (marketStats.value.btcDominance === null) {
-          marketStats.value.btcDominance = null
-        }
+        // Wartość zostanie zachowana (null z inicjalizacji lub poprzednia wartość)
       }
 
       // Zawsze aktualizuj timestamp jeśli udało się pobrać jakiekolwiek dane
