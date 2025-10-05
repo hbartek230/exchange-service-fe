@@ -1,23 +1,10 @@
 import { ref, computed } from 'vue'
 import { exchangeService } from '../bff/exchangeService'
+import { getCurrencyFlag } from '../assets/currencyFlags'
 
 // Configuration constants
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 const MARKET_STATS_REFRESH_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
-
-// Lokalne dane o flagach - używane tylko jako fallback jeśli BFF nie zwróci flag
-const currencyFlags = {
-  'USD': { flag: '🇺🇸', name: 'Dolar amerykański' },
-  'EUR': { flag: '🇪🇺', name: 'Euro' },
-  'GBP': { flag: '🇬🇧', name: 'Funt brytyjski' },
-  'CHF': { flag: '🇨🇭', name: 'Frank szwajcarski' },
-  'JPY': { flag: '🇯🇵', name: 'Jen japoński' },
-  'CAD': { flag: '🇨🇦', name: 'Dolar kanadyjski' },
-  'AUD': { flag: '🇦🇺', name: 'Dolar australijski' },
-  'CNY': { flag: '🇨🇳', name: 'Juan chiński' },
-  'SEK': { flag: '🇸🇪', name: 'Korona szwedzka' },
-  'NOK': { flag: '🇳🇴', name: 'Korona norweska' }
-}
 
 // Singleton state - shared across all component instances
 const currencies = ref([])
@@ -39,7 +26,7 @@ const fetchExchangeRates = async () => {
         bid: parseFloat(item.bid),
         ask: parseFloat(item.ask),
         // Dodaj flage jako jedyną "wzbogacenie" z frontendu  
-        flag: currencyFlags[item.code]?.flag || '💱'
+        flag: getCurrencyFlag(item.code)
       }))
       
       // BFF nie zwraca kryptowalut, więc pusta tablica
@@ -48,12 +35,6 @@ const fetchExchangeRates = async () => {
     } catch (err) {
       console.error('Error fetching exchange rates:', err)
       error.value = err.message
-      
-      // W przypadku błędu, zachowaj poprzednie dane jeśli istnieją
-      if (currencies.value.length === 0 && cryptocurrencies.value.length === 0) {
-        currencies.value = []
-        cryptocurrencies.value = []
-      }
     } finally {
       loading.value = false
     }

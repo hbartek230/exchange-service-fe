@@ -207,9 +207,7 @@ const exchangeRate = computed(() => {
 })
 
 const calculate = () => {
-  const fromRate = getAskRate(fromCurrency.value)
-  const toRate = getAskRate(toCurrency.value)
-  toAmount.value = (fromAmount.value * fromRate) / toRate
+  toAmount.value = fromAmount.value * exchangeRate.value
 }
 
 const swapCurrencies = () => {
