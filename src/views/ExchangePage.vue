@@ -8,7 +8,36 @@
     </v-row>
 
     <v-card elevation="2" class="pa-6">
-      <v-row class="justify-center">
+      <!-- Loading state -->
+      <div v-if="loading" class="text-center pa-8">
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+        ></v-progress-circular>
+        <p class="text-subtitle-1 mt-4">Ładowanie danych o kursach...</p>
+      </div>
+
+      <!-- Error state -->
+      <div v-else-if="error" class="pa-6 text-center">
+        <v-alert
+          type="error"
+          variant="tonal"
+          class="mb-4"
+        >
+          <strong>Błąd podczas pobierania danych:</strong> {{ error }}
+        </v-alert>
+        <v-btn
+          @click="init"
+          color="primary"
+          prepend-icon="mdi-refresh"
+        >
+          Spróbuj ponownie
+        </v-btn>
+      </div>
+
+      <!-- Exchange form -->
+      <v-row v-else class="justify-center">
         <v-col cols="12" md="10" lg="8">
           <!-- Waluta źródłowa -->
           <v-row class="mb-4">
@@ -104,11 +133,21 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
-const { currencies, cryptocurrencies, formatCurrency, convertCurrency } = useCurrencyData()
+const { 
+  currencies, 
+  cryptocurrencies, 
+  formatCurrency, 
+  convertCurrency,
+  loading,
+  error,
+  init,
+  startAutoRefresh,
+  stopAutoRefresh
+} = useCurrencyData()
 const route = useRoute()
 
 // Przygotuj opcje dla select
@@ -144,7 +183,10 @@ const toCurrency = ref('USD')
 const fromAmount = ref(100)
 const toAmount = ref(0)
 
-onMounted(() => {
+onMounted(async () => {
+  await init()
+  startAutoRefresh()
+  
   if (route.query.to) {
     const currencyCode = Array.isArray(route.query.to) ? route.query.to[0] : route.query.to
     const targetCurrency = String(currencyCode).toUpperCase()
@@ -153,6 +195,10 @@ onMounted(() => {
       toCurrency.value = targetCurrency
     }
   }
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
 })
 
 const getRate = (code) => {

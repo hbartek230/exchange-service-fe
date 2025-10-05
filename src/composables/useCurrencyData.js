@@ -1,161 +1,81 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { exchangeService } from '../bff/exchangeService'
 
 export function useCurrencyData() {
-  const currencies = ref([
-    { 
-      code: 'USD', 
-      name: 'Dolar amerykański', 
-      flag: '🇺🇸',
-      rate: 4.02,
-      change: 0.5
-    },
-    { 
-      code: 'EUR', 
-      name: 'Euro', 
-      flag: '🇪🇺',
-      rate: 4.32,
-      change: -0.3
-    },
-    { 
-      code: 'GBP', 
-      name: 'Funt brytyjski', 
-      flag: '🇬🇧',
-      rate: 5.08,
-      change: 0.8
-    },
-    { 
-      code: 'CHF', 
-      name: 'Frank szwajcarski', 
-      flag: '🇨🇭',
-      rate: 4.61,
-      change: 0.2
-    },
-    { 
-      code: 'JPY', 
-      name: 'Jen japoński', 
-      flag: '🇯🇵',
-      rate: 0.027,
-      change: -0.1
-    },
-    { 
-      code: 'CAD', 
-      name: 'Dolar kanadyjski', 
-      flag: '🇨🇦',
-      rate: 2.85,
-      change: 0.4
-    },
-    { 
-      code: 'AUD', 
-      name: 'Dolar australijski', 
-      flag: '🇦🇺',
-      rate: 2.56,
-      change: -0.2
-    },
-    { 
-      code: 'CNY', 
-      name: 'Juan chiński', 
-      flag: '🇨🇳',
-      rate: 0.55,
-      change: 0.1
-    },
-    { 
-      code: 'SEK', 
-      name: 'Korona szwedzka', 
-      flag: '🇸🇪',
-      rate: 0.38,
-      change: 0.3
-    },
-    { 
-      code: 'NOK', 
-      name: 'Korona norweska', 
-      flag: '🇳🇴',
-      rate: 0.37,
-      change: -0.4
-    }
-  ])
+  // Lokalne dane o flagach - używane tylko jako fallback jeśli BFF nie zwróci flag
+  const currencyFlags = {
+    'USD': { flag: '🇺🇸', name: 'Dolar amerykański' },
+    'EUR': { flag: '🇪🇺', name: 'Euro' },
+    'GBP': { flag: '��', name: 'Funt brytyjski' },
+    'CHF': { flag: '��', name: 'Frank szwajcarski' },
+    'JPY': { flag: '��', name: 'Jen japoński' },
+    'CAD': { flag: '��', name: 'Dolar kanadyjski' },
+    'AUD': { flag: '��', name: 'Dolar australijski' },
+    'CNY': { flag: '��', name: 'Juan chiński' },
+    'SEK': { flag: '��', name: 'Korona szwedzka' },
+    'NOK': { flag: '��', name: 'Korona norweska' }
+  }
 
-  const cryptocurrencies = ref([
-    {
-      code: 'BTC',
-      name: 'Bitcoin',
-      symbol: '₿',
-      rate: 412500.00,
-      change: 2.5,
-      icon: 'mdi-bitcoin'
-    },
-    {
-      code: 'ETH',
-      name: 'Ethereum',
-      symbol: 'Ξ',
-      rate: 13800.00,
-      change: 1.8,
-      icon: 'mdi-ethereum'
-    },
-    {
-      code: 'USDT',
-      name: 'Tether',
-      symbol: '₮',
-      rate: 4.02,
-      change: 0.0,
-      icon: 'mdi-currency-usd'
-    },
-    {
-      code: 'BNB',
-      name: 'Binance Coin',
-      symbol: 'BNB',
-      rate: 2450.00,
-      change: -1.2,
-      icon: 'mdi-hexagon-multiple'
-    },
-    {
-      code: 'SOL',
-      name: 'Solana',
-      symbol: 'SOL',
-      rate: 820.00,
-      change: 3.4,
-      icon: 'mdi-triangle'
-    },
-    {
-      code: 'XRP',
-      name: 'Ripple',
-      symbol: 'XRP',
-      rate: 9.20,
-      change: 0.9,
-      icon: 'mdi-water'
-    },
-    {
-      code: 'ADA',
-      name: 'Cardano',
-      symbol: '₳',
-      rate: 3.85,
-      change: -0.5,
-      icon: 'mdi-alpha-a-circle'
-    },
-    {
-      code: 'DOGE',
-      name: 'Dogecoin',
-      symbol: 'Ð',
-      rate: 0.68,
-      change: 5.2,
-      icon: 'mdi-dog'
-    },
-    {
-      code: 'DOT',
-      name: 'Polkadot',
-      symbol: 'DOT',
-      rate: 28.50,
-      change: 1.1,
-      icon: 'mdi-circle-multiple'
-    },
-    {
-      code: 'MATIC',
-      name: 'Polygon',
-      symbol: 'MATIC',
-      rate: 3.42,
-      change: -2.1,
-      icon: 'mdi-hexagon'
+  const cryptocurrencyData = {
+    'BTC': { symbol: '₿', name: 'Bitcoin', icon: 'mdi-bitcoin' },
+    'ETH': { symbol: 'Ξ', name: 'Ethereum', icon: 'mdi-ethereum' },
+    'USDT': { symbol: '₮', name: 'Tether', icon: 'mdi-currency-usd' },
+    'BNB': { symbol: 'BNB', name: 'Binance Coin', icon: 'mdi-hexagon-multiple' },
+    'SOL': { symbol: 'SOL', name: 'Solana', icon: 'mdi-triangle' },
+    'XRP': { symbol: 'XRP', name: 'Ripple', icon: 'mdi-water' },
+    'ADA': { symbol: '₳', name: 'Cardano', icon: 'mdi-alpha-a-circle' },
+    'DOGE': { symbol: 'Ð', name: 'Dogecoin', icon: 'mdi-dog' },
+    'DOT': { symbol: 'DOT', name: 'Polkadot', icon: 'mdi-circle-multiple' },
+    'MATIC': { symbol: 'MATIC', name: 'Polygon', icon: 'mdi-hexagon' }
+  }
+
+  const currencies = ref([])
+  const cryptocurrencies = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  const fetchExchangeRates = async () => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const data = await exchangeService.getExchangeRates()
+      
+      // Bezpośrednio używaj danych z BFF z lokalnymi fallbackami
+      currencies.value = (data.currencies || []).map(currency => ({
+        code: currency.code,
+        name: currency.name || currencyFlags[currency.code]?.name || currency.code,
+        flag: currency.flag || currencyFlags[currency.code]?.flag || '💱',
+        rate: currency.rate,
+        change: currency.change || 0,
+        // Dodatkowe pola z BFF jeśli są dostępne
+        bid: currency.bid || null,
+        ask: currency.ask || null
+      }))
+      
+      cryptocurrencies.value = (data.cryptocurrencies || []).map(crypto => ({
+        // Używaj danych z BFF jako priorytet, lokalne dane jako fallback
+        code: crypto.code,
+        name: crypto.name || cryptocurrencyData[crypto.code]?.name || crypto.code,
+        symbol: crypto.symbol || cryptocurrencyData[crypto.code]?.symbol || crypto.code,
+        icon: crypto.icon || cryptocurrencyData[crypto.code]?.icon || 'mdi-currency-btc',
+        rate: crypto.rate,
+        change: crypto.change || 0
+      }))
+      
+    } catch (err) {
+      console.error('Error fetching exchange rates:', err)
+      error.value = err.message
+      
+      // W przypadku błędu, zachowaj poprzednie dane jeśli istnieją
+      if (currencies.value.length === 0 && cryptocurrencies.value.length === 0) {
+        currencies.value = []
+        cryptocurrencies.value = []
+      }
+    } finally {
+      loading.value = false
     }
-  ])
+  }
 
   const marketStats = ref({
     marketCapPLN: null,
@@ -186,33 +106,67 @@ export function useCurrencyData() {
 
   const fetchMarketStats = async () => {
     try {
-      const res = await fetch('https://api.coingecko.com/api/v3/global')
-      if (!res.ok) throw new Error('Failed to fetch market stats')
-      const json = await res.json()
+      const json = await exchangeService.getMarketStats()
+
+      // Sprawdź czy otrzymaliśmy prawidłowe dane
+      if (!json || !json.data) {
+        console.warn('Market stats API returned no data - keeping existing values')
+        return
+      }
 
       const marketCapUSD = json?.data?.total_market_cap?.usd ?? null
       const volumeUSD = json?.data?.total_volume?.usd ?? null
       const btcDominance = json?.data?.market_cap_percentage?.btc ?? null
 
+      // Znajdź kurs USD, ale obsłuż przypadek gdy go nie ma
       const usdEntry = currencies.value.find(c => c.code === 'USD')
       const usdRate = usdEntry ? usdEntry.rate : null
 
-      if (marketCapUSD != null && usdRate != null) {
+      // Aktualizuj tylko te wartości, które są dostępne
+      if (marketCapUSD != null && usdRate != null && !isNaN(marketCapUSD) && !isNaN(usdRate)) {
         marketStats.value.marketCapPLN = marketCapUSD * usdRate
       } else {
-        marketStats.value.marketCapPLN = null
+        if (marketCapUSD == null) {
+          console.warn('Market cap USD not available in API response')
+        }
+        if (usdRate == null) {
+          console.warn('USD rate not available - cannot calculate PLN values')
+        }
+        // Zachowaj poprzednią wartość jeśli była ustawiona
+        if (marketStats.value.marketCapPLN === null) {
+          marketStats.value.marketCapPLN = null
+        }
       }
 
-      if (volumeUSD != null && usdRate != null) {
+      if (volumeUSD != null && usdRate != null && !isNaN(volumeUSD) && !isNaN(usdRate)) {
         marketStats.value.volume24hPLN = volumeUSD * usdRate
       } else {
-        marketStats.value.volume24hPLN = null
+        if (volumeUSD == null) {
+          console.warn('Volume 24h USD not available in API response')
+        }
+        // Zachowaj poprzednią wartość jeśli była ustawiona
+        if (marketStats.value.volume24hPLN === null) {
+          marketStats.value.volume24hPLN = null
+        }
       }
 
-      marketStats.value.btcDominance = typeof btcDominance === 'number' ? btcDominance : null
+      if (typeof btcDominance === 'number' && !isNaN(btcDominance)) {
+        marketStats.value.btcDominance = btcDominance
+      } else {
+        console.warn('BTC dominance not available or invalid in API response')
+        // Zachowaj poprzednią wartość jeśli była ustawiona
+        if (marketStats.value.btcDominance === null) {
+          marketStats.value.btcDominance = null
+        }
+      }
+
+      // Zawsze aktualizuj timestamp jeśli udało się pobrać jakiekolwiek dane
       marketStats.value.updatedAt = new Date().toISOString()
+      
     } catch (err) {
       console.error('fetchMarketStats error:', err)
+      // W przypadku błędu external API, nie przerywamy działania aplikacji
+      // Zachowujemy poprzednie wartości i tylko logujemy błąd
     }
   }
 
@@ -229,14 +183,48 @@ export function useCurrencyData() {
     return (amount * fromRate) / toRate
   }
 
+  const init = async () => {
+    if (currencies.value.length === 0 && cryptocurrencies.value.length === 0 && !loading.value) {
+      await fetchExchangeRates()
+    }
+  }
+
+  let refreshInterval = null
+  
+  const startAutoRefresh = () => {
+    if (refreshInterval) return
+    
+    refreshInterval = setInterval(() => {
+      fetchExchangeRates()
+    }, 5 * 60 * 1000)
+  }
+  
+  const stopAutoRefresh = () => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval)
+      refreshInterval = null
+    }
+  }
+
+  // Proste computed properties dla stanu danych
+  const hasData = computed(() => {
+    return currencies.value.length > 0 || cryptocurrencies.value.length > 0
+  })
+
   return {
     currencies,
     cryptocurrencies,
     formatCurrency,
     convertCurrency,
-    // market stats & helpers
     marketStats,
     fetchMarketStats,
-    formatLargePLN
+    formatLargePLN,
+    fetchExchangeRates,
+    loading,
+    error,
+    init,
+    startAutoRefresh,
+    stopAutoRefresh,
+    hasData
   }
 }
