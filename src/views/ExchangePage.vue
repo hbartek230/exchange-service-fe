@@ -8,7 +8,36 @@
     </v-row>
 
     <v-card elevation="2" class="pa-6">
-      <v-row class="justify-center">
+      <!-- Loading state -->
+      <div v-if="loading" class="text-center pa-8">
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+        ></v-progress-circular>
+        <p class="text-subtitle-1 mt-4">Ładowanie danych o kursach...</p>
+      </div>
+
+      <!-- Error state -->
+      <div v-else-if="error" class="pa-6 text-center">
+        <v-alert
+          type="error"
+          variant="tonal"
+          class="mb-4"
+        >
+          <strong>Błąd podczas pobierania danych:</strong> {{ error }}
+        </v-alert>
+        <v-btn
+          @click="init"
+          color="primary"
+          prepend-icon="mdi-refresh"
+        >
+          Spróbuj ponownie
+        </v-btn>
+      </div>
+
+      <!-- Exchange form -->
+      <v-row v-else class="justify-center">
         <v-col cols="12" md="10" lg="8">
           <!-- Waluta źródłowa -->
           <v-row class="mb-4">
@@ -104,36 +133,39 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
-const { currencies, cryptocurrencies, formatCurrency, convertCurrency } = useCurrencyData()
+const { 
+  currencies, 
+  formatCurrency,
+  loading,
+  error,
+  init,
+  startAutoRefresh,
+  stopAutoRefresh
+} = useCurrencyData()
 const route = useRoute()
 
-// Przygotuj opcje dla select
+// Przygotuj opcje dla select używając rzeczywistej struktury BFF
 const currencyOptions = computed(() => {
   const allCurr = [
-    { code: 'PLN', label: '🇵🇱 PLN - Polski złoty', flag: '🇵🇱' },
+    { code: 'PLN', label: '🇵🇱 PLN - Polski złoty', flag: '🇵🇱', ask: 1, bid: 1 },
     ...currencies.value.map(c => ({
       code: c.code,
-      label: `${c.flag} ${c.code} - ${c.name}`,
+      label: `${c.flag} ${c.code} - ${c.currency}`,
       flag: c.flag,
-      rate: c.rate
-    })),
-    ...cryptocurrencies.value.map(c => ({
-      code: c.code,
-      label: `${c.symbol} ${c.code} - ${c.name}`,
-      flag: c.symbol,
-      rate: c.rate
+      ask: c.ask,
+      bid: c.bid
     }))
   ]
   return allCurr
 })
 
 const allCurrenciesMap = computed(() => {
-  const map = { 'PLN': { rate: 1 } }
-  ;[...currencies.value, ...cryptocurrencies.value].forEach(c => {
+  const map = { 'PLN': { ask: 1, bid: 1 } }
+  currencies.value.forEach(c => {
     map[c.code] = c
   })
   return map
@@ -144,7 +176,10 @@ const toCurrency = ref('USD')
 const fromAmount = ref(100)
 const toAmount = ref(0)
 
-onMounted(() => {
+onMounted(async () => {
+  await init()
+  startAutoRefresh()
+  
   if (route.query.to) {
     const currencyCode = Array.isArray(route.query.to) ? route.query.to[0] : route.query.to
     const targetCurrency = String(currencyCode).toUpperCase()
@@ -155,21 +190,24 @@ onMounted(() => {
   }
 })
 
-const getRate = (code) => {
+onUnmounted(() => {
+  stopAutoRefresh()
+})
+
+// Używamy kursu ask (sprzedaży) jako podstawowego kursu do obliczeń
+const getAskRate = (code) => {
   const entry = allCurrenciesMap.value[code]
-  return entry ? entry.rate : 1
+  return entry ? entry.ask : 1
 }
 
 const exchangeRate = computed(() => {
-  const fromRate = getRate(fromCurrency.value)
-  const toRate = getRate(toCurrency.value)
+  const fromRate = getAskRate(fromCurrency.value)
+  const toRate = getAskRate(toCurrency.value)
   return toRate ? fromRate / toRate : 0
 })
 
 const calculate = () => {
-  const fromRate = getRate(fromCurrency.value)
-  const toRate = getRate(toCurrency.value)
-  toAmount.value = convertCurrency(fromAmount.value, fromRate, toRate)
+  toAmount.value = fromAmount.value * exchangeRate.value
 }
 
 const swapCurrencies = () => {

@@ -1,14 +1,54 @@
 <template>
   <div>
     <v-row class="mb-6">
-      <v-col cols="12">
+      <v-col cols="12" md="8">
         <h1 class="text-h3 font-weight-bold mb-2">Kursy kryptowalut</h1>
         <p class="text-h6 text-grey-darken-1">Śledź najnowsze kursy najpopularniejszych kryptowalut</p>
+      </v-col>
+      <v-col cols="12" md="4" class="d-flex align-end justify-end">
+        <v-btn
+          @click="fetchExchangeRates"
+          :loading="loading"
+          color="primary"
+          prepend-icon="mdi-refresh"
+          variant="outlined"
+        >
+          Odśwież kursy
+        </v-btn>
       </v-col>
     </v-row>
 
     <v-card elevation="2">
-      <v-table>
+      <!-- Loading state -->
+      <div v-if="loading" class="text-center pa-8">
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+        ></v-progress-circular>
+        <p class="text-subtitle-1 mt-4">Ładowanie kursów kryptowalut...</p>
+      </div>
+      
+      <!-- Error state -->
+      <div v-else-if="error" class="pa-6">
+        <v-alert
+          type="error"
+          variant="tonal"
+          class="mb-4"
+        >
+          <strong>Błąd podczas pobierania danych:</strong> {{ error }}
+        </v-alert>
+        <v-btn
+          @click="fetchExchangeRates"
+          color="primary"
+          prepend-icon="mdi-refresh"
+        >
+          Spróbuj ponownie
+        </v-btn>
+      </div>
+
+      <!-- Data table -->
+      <v-table v-else-if="cryptocurrencies.length > 0">
         <thead>
           <tr>
             <th class="text-left">Kryptowaluta</th>
@@ -58,6 +98,12 @@
           </tr>
         </tbody>
       </v-table>
+
+      <!-- Empty state -->
+      <div v-else class="text-center pa-8">
+        <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-bitcoin</v-icon>
+        <p class="text-subtitle-1 text-grey-darken-1">Brak dostępnych kursów kryptowalut</p>
+      </div>
     </v-card>
 
     <!-- Statystyki -->
@@ -118,14 +164,41 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
-const { cryptocurrencies, formatCurrency, marketStats, fetchMarketStats, formatLargePLN } = useCurrencyData()
+const {
+  cryptocurrencies,
+  formatCurrency,
+  marketStats, 
+  fetchMarketStats, 
+  formatLargePLN,
+  fetchExchangeRates,
+  loading,
+  error,
+  init,
+  startAutoRefresh,
+  stopAutoRefresh,
+  startMarketStatsAutoRefresh,
+  stopMarketStatsAutoRefresh
+} = useCurrencyData()
 
-onMounted(() => {
-  fetchMarketStats()
-  setInterval(fetchMarketStats, 5 * 60 * 1000)
+onMounted(async () => {
+  await init()
+  startAutoRefresh()
+  
+  // Initial fetch and start auto-refresh for market stats
+  try {
+    await fetchMarketStats()
+  } catch (error) {
+    console.error('Initial market stats fetch failed:', error)
+  }
+  startMarketStatsAutoRefresh()
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
+  stopMarketStatsAutoRefresh()
 })
 </script>
 
