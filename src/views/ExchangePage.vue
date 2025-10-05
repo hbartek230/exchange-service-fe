@@ -139,7 +139,6 @@ import { useCurrencyData } from '../composables/useCurrencyData'
 
 const { 
   currencies, 
-  cryptocurrencies, 
   formatCurrency,
   loading,
   error,
