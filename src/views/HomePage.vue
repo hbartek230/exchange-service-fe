@@ -21,7 +21,8 @@
           <tr
             v-for="currency in currencies"
             :key="currency.code"
-            class="currency-row"
+            class="currency-row clickable-row"
+            @click="navigateToExchange(currency.code)"
           >
             <td>
               <div class="d-flex align-center">
@@ -71,13 +72,28 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
 const { currencies, formatCurrency } = useCurrencyData()
+const router = useRouter()
+
+const navigateToExchange = (currencyCode) => {
+  router.push({
+    name: 'exchange',
+    query: { to: currencyCode }
+  })
+}
 </script>
 
 <style scoped>
-.currency-row:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(33, 150, 243, 0.08);
 }
 </style>

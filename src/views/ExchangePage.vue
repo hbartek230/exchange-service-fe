@@ -104,10 +104,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useCurrencyData } from '../composables/useCurrencyData'
 
 const { currencies, cryptocurrencies, formatCurrency, convertCurrency } = useCurrencyData()
+const route = useRoute()
 
 // Przygotuj opcje dla select
 const currencyOptions = computed(() => {
@@ -141,6 +143,17 @@ const fromCurrency = ref('PLN')
 const toCurrency = ref('USD')
 const fromAmount = ref(100)
 const toAmount = ref(0)
+
+onMounted(() => {
+  if (route.query.to) {
+    const currencyCode = Array.isArray(route.query.to) ? route.query.to[0] : route.query.to
+    const targetCurrency = String(currencyCode).toUpperCase()
+    const currencyExists = currencyOptions.value.some(c => c.code === targetCurrency)
+    if (currencyExists) {
+      toCurrency.value = targetCurrency
+    }
+  }
+})
 
 const getRate = (code) => {
   const entry = allCurrenciesMap.value[code]
