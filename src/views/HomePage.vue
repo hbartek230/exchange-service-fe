@@ -87,9 +87,6 @@ const navigateToExchange = (currencyCode) => {
 </script>
 
 <style scoped>
-.currency-row:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-}
 
 .clickable-row {
   cursor: pointer;

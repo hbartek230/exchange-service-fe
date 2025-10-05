@@ -146,7 +146,8 @@ const toAmount = ref(0)
 
 onMounted(() => {
   if (route.query.to) {
-    const targetCurrency = route.query.to.toString().toUpperCase()
+    const currencyCode = Array.isArray(route.query.to) ? route.query.to[0] : route.query.to
+    const targetCurrency = String(currencyCode).toUpperCase()
     const currencyExists = currencyOptions.value.some(c => c.code === targetCurrency)
     if (currencyExists) {
       toCurrency.value = targetCurrency
